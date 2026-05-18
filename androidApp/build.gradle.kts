@@ -15,6 +15,9 @@ kotlin {
 
     dependencies {
         implementation(project(":composeApp"))
+        implementation(project(":data"))
+        implementation(libs.koin.android)
+        implementation(libs.androidx.room.runtime)
         implementation(libs.androidx.activity.compose)
         implementation(libs.compose.uiToolingPreview)
     }

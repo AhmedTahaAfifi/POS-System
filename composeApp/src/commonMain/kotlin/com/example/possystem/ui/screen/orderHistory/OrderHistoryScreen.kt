@@ -54,7 +54,7 @@ fun OrderHistoryContent(
             } else if (state.error != null) {
                 Text(
                     modifier = Modifier.align(Alignment.Center),
-                    text = state.error!!,
+                    text = state.error,
                     color = MaterialTheme.colorScheme.error
                 )
             } else if (state.orders.isEmpty()) {

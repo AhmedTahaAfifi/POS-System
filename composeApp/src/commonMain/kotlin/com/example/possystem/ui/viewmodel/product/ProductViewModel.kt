@@ -60,4 +60,8 @@ class ProductViewModel(
     fun onGoToCart() {
         sendEffect(ProductUIEffect.NavigateToCart)
     }
+
+    fun onGoToHistory() {
+        sendEffect(ProductUIEffect.NavigateToHistory)
+    }
 }

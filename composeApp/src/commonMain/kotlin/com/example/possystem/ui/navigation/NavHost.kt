@@ -8,13 +8,18 @@ import com.example.possystem.ui.screen.orderHistory.OrderHistoryScreen
 @Composable
 fun NavHost(
     currentScreen: Screen,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+    onBack: () -> Unit
 ) {
     when (currentScreen) {
         is Screen.ProductList -> ProductScreen(
             onNavigate = { onNavigate(it) }
         )
-        is Screen.Cart -> CartScreen()
-        is Screen.OrderHistory -> OrderHistoryScreen()
+        is Screen.Cart -> CartScreen(
+            onBack = onBack
+        )
+        is Screen.OrderHistory -> OrderHistoryScreen(
+            // We can add an onBack here too if we want
+        )
     }
 }

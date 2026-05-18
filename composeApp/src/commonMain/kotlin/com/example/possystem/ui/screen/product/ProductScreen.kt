@@ -8,9 +8,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.possystem.domain.model.OrderItem
 import com.example.possystem.domain.model.Product
 import com.example.possystem.ui.components.CartSummaryBar
@@ -44,7 +47,8 @@ fun ProductScreen(
         viewModel.viewEffect.collect { effect ->
             when(effect) {
                 is ProductUIEffect.NavigateToCart -> onNavigate(Screen.Cart)
-                is ProductUIEffect.ShowError -> {}
+                is ProductUIEffect.NavigateToHistory -> onNavigate(Screen.OrderHistory)
+                is ProductUIEffect.ShowError -> { /* Handle error toast/snackbar */ }
             }
         }
     }
@@ -52,7 +56,8 @@ fun ProductScreen(
     ProductScreenContent(
         state = state,
         onAddToCart = { product -> viewModel.addToCart(product) },
-        onNavigateToCart = { viewModel.onGoToCart() }
+        onNavigateToCart = { viewModel.onGoToCart() },
+        onNavigateToHistory = { viewModel.onGoToHistory() }
     )
 }
 
@@ -61,12 +66,18 @@ fun ProductScreen(
 fun ProductScreenContent(
     state: ProductUIState,
     onAddToCart: (Product) -> Unit,
-    onNavigateToCart: () -> Unit
+    onNavigateToCart: () -> Unit,
+    onNavigateToHistory: () -> Unit
 ) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("POS System - Products") }
+                title = { Text("POS System - Products") },
+                actions = {
+                    IconButton(onClick = onNavigateToHistory) {
+                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = "History")
+                    }
+                }
             )
         },
         bottomBar = {
@@ -77,6 +88,7 @@ fun ProductScreenContent(
             )
         }
     ) { padding ->
+
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             if (state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -132,7 +144,8 @@ fun ProductScreenPreview() {
         ProductScreenContent(
             state = mockState,
             onAddToCart = {},
-            onNavigateToCart = {}
+            onNavigateToCart = {},
+            onNavigateToHistory = {}
         )
     }
 }

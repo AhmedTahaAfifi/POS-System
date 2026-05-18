@@ -8,10 +8,12 @@ import androidx.room.TypeConverters
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.example.possystem.data.datasource.dao.OrderDao
 import com.example.possystem.data.datasource.dao.ProductDao
+import com.example.possystem.data.datasource.dao.SyncDao
 import com.example.possystem.data.datasource.dao.TransactionDao
 import com.example.possystem.data.datasource.entity.OrderEntity
 import com.example.possystem.data.datasource.entity.OrderItemEntity
 import com.example.possystem.data.datasource.entity.ProductEntity
+import com.example.possystem.data.datasource.entity.SyncEntity
 import com.example.possystem.data.datasource.entity.TransactionEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -21,7 +23,8 @@ import kotlinx.coroutines.IO
         ProductEntity::class,
         OrderEntity::class,
         OrderItemEntity::class,
-        TransactionEntity::class
+        TransactionEntity::class,
+        SyncEntity::class
     ],
     version = 1
 )
@@ -32,6 +35,7 @@ abstract class POSDatabase: RoomDatabase() {
     abstract fun productDao(): ProductDao
     abstract fun orderDao(): OrderDao
     abstract fun transactionDao(): TransactionDao
+    abstract fun syncDao(): SyncDao
 
 }
 

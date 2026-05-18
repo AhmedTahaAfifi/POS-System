@@ -1,6 +1,7 @@
 package com.example.possystem.ui.viewmodel.cart
 
 import androidx.lifecycle.viewModelScope
+import com.example.possystem.domain.hardware.Printer
 import com.example.possystem.domain.model.Order
 import com.example.possystem.domain.model.OrderStatus
 import com.example.possystem.domain.repository.CartRepository
@@ -13,7 +14,8 @@ import kotlin.random.Random
 
 class CartViewModel(
     private val cartRepository: CartRepository,
-    private val createOrderUseCase: CreateOrderUseCase
+    private val createOrderUseCase: CreateOrderUseCase,
+    private val printer: Printer
 ): BaseViewModel<CartUIState, CartUIEffect>(CartUIState()) {
 
     init {
@@ -22,6 +24,7 @@ class CartViewModel(
 
     private fun observeCart() {
         this.cartRepository.cartItem.onEach { items ->
+            println("CartViewModel: Observed items: ${items.size}")
             updateState { it.copy(
                 items = items,
                 total = items.sumOf { item -> item.priceAtTimeOfOrder * item.quantity }
@@ -55,12 +58,24 @@ class CartViewModel(
                     status = OrderStatus.PENDING
                 )
                 createOrderUseCase(order)
+                printReceipt(order)
                 cartRepository.clearCart()
                 sendEffect(CartUIEffect.OrderPlaced)
             } catch (e: Exception) {
                 sendEffect(CartUIEffect.ShowError(e.message ?: "Checkout failed"))
             } finally {
                 updateState { it.copy(isProcessing = false) }
+            }
+        }
+    }
+
+    fun printReceipt(order: Order) {
+        viewModelScope.launch {
+            val result = printer.printReceipt(order)
+            if (result.isSuccess) {
+                sendEffect(CartUIEffect.ShowPrintSuccess("Receipt printed successfully!"))
+            } else {
+                sendEffect(CartUIEffect.ShowError("Printing failed!"))
             }
         }
     }

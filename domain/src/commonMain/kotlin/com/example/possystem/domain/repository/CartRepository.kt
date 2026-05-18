@@ -12,6 +12,7 @@ class CartRepository {
     val cartItem: StateFlow<List<OrderItem>> = _cartItems.asStateFlow()
 
     fun addToCart(item: OrderItem) {
+        println("CartRepository: Adding item ${item.product.name}")
         _cartItems.update { currentItems ->
             val existingItem = currentItems.find { it.product.id == item.product.id }
             if (existingItem != null) {

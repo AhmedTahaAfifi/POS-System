@@ -23,6 +23,7 @@ kotlin {
     }
 
     listOf(
+        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -63,4 +64,12 @@ kotlin {
 
 dependencies {
     "androidRuntimeClasspath"(libs.compose.uiTooling)
+}
+
+compose.resources {
+    packageOfResClass = "com.example.possystem"
+}
+
+tasks.matching { it.name == "syncComposeResourcesForIos" }.configureEach {
+    enabled = System.getProperty("os.name").contains("Mac", ignoreCase = true)
 }

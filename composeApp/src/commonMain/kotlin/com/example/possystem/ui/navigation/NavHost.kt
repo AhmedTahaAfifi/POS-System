@@ -19,7 +19,7 @@ fun NavHost(
             onBack = onBack
         )
         is Screen.OrderHistory -> OrderHistoryScreen(
-            // We can add an onBack here too if we want
+            onBack = onBack
         )
     }
 }

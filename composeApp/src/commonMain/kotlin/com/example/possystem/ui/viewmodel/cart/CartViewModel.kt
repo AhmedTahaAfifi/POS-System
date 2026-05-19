@@ -5,7 +5,11 @@ import com.example.possystem.domain.hardware.Printer
 import com.example.possystem.domain.model.Order
 import com.example.possystem.domain.model.OrderStatus
 import com.example.possystem.domain.repository.CartRepository
+import com.example.possystem.domain.usecase.ClearCartUseCase
 import com.example.possystem.domain.usecase.CreateOrderUseCase
+import com.example.possystem.domain.usecase.GetCartItemsUseCase
+import com.example.possystem.domain.usecase.RemoveFromCartUseCase
+import com.example.possystem.domain.usecase.UpdateCartQuantityUseCase
 import com.example.possystem.ui.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -13,8 +17,11 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class CartViewModel(
-    private val cartRepository: CartRepository,
+    private val cartItemsUseCase: GetCartItemsUseCase,
+    private val updateCartQuantityUseCase: UpdateCartQuantityUseCase,
+    private val removeFromCartUseCase: RemoveFromCartUseCase,
     private val createOrderUseCase: CreateOrderUseCase,
+    private val clearCartUseCase: ClearCartUseCase,
     private val printer: Printer
 ): BaseViewModel<CartUIState, CartUIEffect>(CartUIState()) {
 
@@ -23,7 +30,7 @@ class CartViewModel(
     }
 
     private fun observeCart() {
-        this.cartRepository.cartItem.onEach { items ->
+        this.cartItemsUseCase().onEach { items ->
             println("CartViewModel: Observed items: ${items.size}")
             updateState { it.copy(
                 items = items,
@@ -33,15 +40,15 @@ class CartViewModel(
     }
 
     fun updateQuantity(productId: String, delta: Int) {
-        this.cartRepository.updateQuantity(productId, delta)
+        this.updateCartQuantityUseCase(productId, delta)
     }
 
     fun removeItem(productId: String) {
-        this.cartRepository.removeFromCart(productId)
+        this.removeFromCartUseCase(productId)
     }
 
     fun checkout() {
-        val currentItems = cartRepository.cartItem.value
+        val currentItems = this.cartItemsUseCase().value
         if (currentItems.isEmpty()) {
             sendEffect(CartUIEffect.ShowError("Cart is empty!"))
             return
@@ -59,7 +66,7 @@ class CartViewModel(
                 )
                 createOrderUseCase(order)
                 printReceipt(order)
-                cartRepository.clearCart()
+                clearCartUseCase()
                 sendEffect(CartUIEffect.OrderPlaced)
             } catch (e: Exception) {
                 sendEffect(CartUIEffect.ShowError(e.message ?: "Checkout failed"))

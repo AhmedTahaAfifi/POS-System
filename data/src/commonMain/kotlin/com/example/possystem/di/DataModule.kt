@@ -8,6 +8,8 @@ import com.example.possystem.data.repository.ProductRepositoryImpl
 import com.example.possystem.data.repository.SyncRepository
 import com.example.possystem.domain.hardware.Printer
 import com.example.possystem.data.hardware.MockPrinter
+import com.example.possystem.data.repository.CartRepositoryImp
+import com.example.possystem.domain.repository.CartRepository
 import com.example.possystem.domain.repository.OrderRepository
 import com.example.possystem.domain.repository.ProductRepository
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +30,7 @@ fun dataModule(database: POSDatabase) = module {
     // Repositories
     single<ProductRepository> { ProductRepositoryImpl(get()) }
     single<OrderRepository> { OrderRepositoryImpl(get()) }
+    single<CartRepository> { CartRepositoryImp() }
     single { SyncRepository(get()) }
 
     // Hardware

@@ -11,6 +11,8 @@ import com.example.possystem.domain.usecase.GetCartItemsUseCase
 import com.example.possystem.domain.usecase.RemoveFromCartUseCase
 import com.example.possystem.domain.usecase.UpdateCartQuantityUseCase
 import com.example.possystem.ui.viewmodel.BaseViewModel
+import com.example.possystem.ui.viewmodel.orderHistory.OrderHistoryUIEffect
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -23,7 +25,7 @@ class CartViewModel(
     private val createOrderUseCase: CreateOrderUseCase,
     private val clearCartUseCase: ClearCartUseCase,
     private val printer: Printer
-): BaseViewModel<CartUIState, CartUIEffect>(CartUIState()) {
+) : BaseViewModel<CartUIState, CartUIEffect>(CartUIState()) {
 
     init {
         observeCart()
@@ -32,10 +34,12 @@ class CartViewModel(
     private fun observeCart() {
         this.cartItemsUseCase().onEach { items ->
             println("CartViewModel: Observed items: ${items.size}")
-            updateState { it.copy(
-                items = items,
-                total = items.sumOf { item -> item.priceAtTimeOfOrder * item.quantity }
-            )}
+            updateState {
+                it.copy(
+                    items = items,
+                    total = items.sumOf { item -> item.priceAtTimeOfOrder * item.quantity }
+                )
+            }
         }.launchIn(viewModelScope)
     }
 
@@ -48,30 +52,34 @@ class CartViewModel(
     }
 
     fun checkout() {
-        val currentItems = this.cartItemsUseCase().value
-        if (currentItems.isEmpty()) {
-            sendEffect(CartUIEffect.ShowError("Cart is empty!"))
-            return
-        }
-
         viewModelScope.launch {
-            updateState { it.copy(isProcessing = true) }
-            try {
-                val order = Order(
-                    id = "ORD_${Random.nextInt(1000, 9999)}",
-                    items = currentItems,
-                    total = currentItems.sumOf { it.priceAtTimeOfOrder * it.quantity },
-                    timestamp = 0L,
-                    status = OrderStatus.PENDING
-                )
-                createOrderUseCase(order)
-                printReceipt(order)
-                clearCartUseCase()
-                sendEffect(CartUIEffect.OrderPlaced)
-            } catch (e: Exception) {
-                sendEffect(CartUIEffect.ShowError(e.message ?: "Checkout failed"))
-            } finally {
+            cartItemsUseCase().catch { e ->
                 updateState { it.copy(isProcessing = false) }
+                sendEffect(CartUIEffect.ShowError(e.message ?: "Failed to load cart"))
+            }.collect { currentItems ->
+                if (currentItems.isEmpty()) {
+                    sendEffect(CartUIEffect.ShowError("Cart is empty!"))
+                    return@collect
+                }
+
+                updateState { it.copy(isProcessing = true) }
+                try {
+                    val order = Order(
+                        id = "ORD_${Random.nextInt(1000, 9999)}",
+                        items = currentItems,
+                        total = currentItems.sumOf { it.priceAtTimeOfOrder * it.quantity },
+                        timestamp = 0L,
+                        status = OrderStatus.PENDING
+                    )
+                    createOrderUseCase(order)
+                    printReceipt(order)
+                    clearCartUseCase()
+                    sendEffect(CartUIEffect.OrderPlaced)
+                } catch (e: Exception) {
+                    sendEffect(CartUIEffect.ShowError(e.message ?: "Checkout failed"))
+                } finally {
+                    updateState { it.copy(isProcessing = false) }
+                }
             }
         }
     }

@@ -1,7 +1,9 @@
 package com.example.possystem.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,14 +27,20 @@ fun ProductCard(
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onAddToCart(product) }
     ) {
-        Column(
-            modifier = Modifier.padding(16.sdp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = product.name, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.sdp))
-            Text(text = "$${product.price.format()}", style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(8.sdp))
+            Column(
+                modifier = Modifier.padding(16.sdp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = product.name, style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.sdp))
+                Text(text = "$${product.price.format()}", style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(8.sdp))
+            }
             Button(onClick = { onAddToCart(product) }) {
                 Text("Add to Cart")
             }

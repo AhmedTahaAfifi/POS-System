@@ -2,9 +2,12 @@ package com.example.possystem.domain.usecase
 
 import com.example.possystem.domain.model.OrderItem
 import com.example.possystem.domain.repository.CartRepository
+import kotlinx.coroutines.flow.Flow
 
 class GetCartItemsUseCase(private val repository: CartRepository) {
-    operator fun invoke() = repository.cartItems
+    operator fun invoke(): Flow<List<OrderItem>> {
+        return repository.getCartItems()
+    }
 }
 
 class AddToCartUseCase(private val repository: CartRepository) {

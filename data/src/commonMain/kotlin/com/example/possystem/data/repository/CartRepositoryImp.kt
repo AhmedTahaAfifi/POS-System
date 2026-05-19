@@ -2,15 +2,18 @@ package com.example.possystem.data.repository
 
 import com.example.possystem.domain.model.OrderItem
 import com.example.possystem.domain.repository.CartRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class CartRepositoryImp: CartRepository {
 
     private val _cartItems = MutableStateFlow<List<OrderItem>>(emptyList())
-    override val cartItems: StateFlow<List<OrderItem>> = _cartItems.asStateFlow()
+
+    override fun getCartItems(): Flow<List<OrderItem>> {
+        return _cartItems.asStateFlow()
+    }
 
     override fun addToCart(item: OrderItem) {
         this._cartItems.update { currentItem ->

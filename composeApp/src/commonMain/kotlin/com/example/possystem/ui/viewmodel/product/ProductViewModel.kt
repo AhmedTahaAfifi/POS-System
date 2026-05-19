@@ -3,14 +3,18 @@ package com.example.possystem.ui.viewmodel.product
 import androidx.lifecycle.viewModelScope
 import com.example.possystem.domain.model.OrderItem
 import com.example.possystem.domain.model.Product
-import com.example.possystem.domain.repository.CartRepository
+import com.example.possystem.domain.usecase.AddToCartUseCase
+import com.example.possystem.domain.usecase.GetCartItemsUseCase
 import com.example.possystem.domain.usecase.GetProductsUseCase
 import com.example.possystem.ui.viewmodel.BaseViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class ProductViewModel(
-    private val cartRepository: CartRepository,
+    private val getCartItemsUseCase: GetCartItemsUseCase,
+    private val addToCartUseCase: AddToCartUseCase,
     private val getProductsUseCase: GetProductsUseCase
 ) : BaseViewModel<ProductUIState, ProductUIEffect>(ProductUIState()) {
 
@@ -32,32 +36,22 @@ class ProductViewModel(
     }
 
     private fun observeCart() {
-        this.cartRepository.cartItem
-            .onEach { items ->
-                updateState { it.copy(cart = items) }
-            }
-            .launchIn(viewModelScope)
+        this.getCartItemsUseCase().onEach { items ->
+            updateState { it.copy(cart = items) }
+        }.launchIn(viewModelScope)
     }
 
     fun addToCart(product: Product) {
-        this.cartRepository.addToCart(
+        this.addToCartUseCase(
             OrderItem(product = product, quantity = 1, priceAtTimeOfOrder = product.price)
         )
     }
 
-    fun removeFromCart(product: Product) {
-        this.cartRepository.removeFromCart(product.id)
-    }
-
-    fun updateQuantity(product: Product, delta: Int) {
-        this.cartRepository.updateQuantity(product.id, delta)
-    }
-
-    fun clearCart() {
-        cartRepository.clearCart()
-    }
-
     fun onGoToCart() {
         sendEffect(ProductUIEffect.NavigateToCart)
+    }
+
+    fun onGoToHistory() {
+        sendEffect(ProductUIEffect.NavigateToHistory)
     }
 }

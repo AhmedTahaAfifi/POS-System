@@ -20,9 +20,12 @@ kotlin {
         androidResources {
             enable = true
         }
+
+        withHostTest {}
     }
 
     listOf(
+        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -37,6 +40,7 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
+            implementation(libs.compose.icons)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
@@ -53,13 +57,23 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
         }
-        
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
+
 }
 
 dependencies {
     "androidRuntimeClasspath"(libs.compose.uiTooling)
+}
+
+compose.resources {
+    packageOfResClass = "com.example.possystem"
+}
+
+tasks.matching { it.name == "syncComposeResourcesForIos" }.configureEach {
+    enabled = System.getProperty("os.name").contains("Mac", ignoreCase = true)
 }

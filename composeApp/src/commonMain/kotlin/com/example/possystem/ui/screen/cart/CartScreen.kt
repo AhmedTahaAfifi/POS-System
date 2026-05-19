@@ -1,62 +1,56 @@
 package com.example.possystem.ui.screen.cart
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.navigationBarsPadding
 import com.example.possystem.domain.model.OrderItem
-import com.example.possystem.domain.model.Product
-import com.example.possystem.ui.components.CardItemRow
-import com.example.possystem.ui.components.CheckOutBar
-import com.example.possystem.ui.viewmodel.cart.CartUIState
+import com.example.possystem.ui.viewmodel.cart.CartUIEffect
 import com.example.possystem.ui.viewmodel.cart.CartViewModel
-import network.chaintech.sdpcomposemultiplatform.sdp
+import com.example.possystem.util.format
 import org.koin.compose.viewmodel.koinViewModel
-
-@Composable
-fun CartScreen(
-    viewModel: CartViewModel = koinViewModel()
-) {
-    val state by viewModel.viewState.collectAsState()
-
-    CartScreenContent(
-        state = state,
-        onUpdateQuantity = { id, delta -> viewModel.updateQuantity(id, delta) },
-        onRemoveItem = { id -> viewModel.removeItem(id) },
-        onCheckout = { viewModel.checkout() }
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartScreenContent(
-    state: CartUIState,
-    onUpdateQuantity: (String, Int) -> Unit,
-    onRemoveItem: (String) -> Unit,
-    onCheckout: () -> Unit
+fun CartScreen(
+    viewModel: CartViewModel = koinViewModel(),
+    onBack: () -> Unit,
 ) {
+    val state by viewModel.viewState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.viewEffect.collect { effect ->
+            when(effect) {
+                is CartUIEffect.OrderPlaced -> { /* Navigate back or show success */ }
+                is CartUIEffect.ShowError -> { /* Show Snackbar with error */ }
+                is CartUIEffect.ShowPrintSuccess -> { /* Show Snackbar: "Receipt printed!" */ }
+            }
+        }
+    }
+
     Scaffold(
-        topBar = { CenterAlignedTopAppBar(title = { Text("Your Cart") }) },
+        topBar = { 
+            CenterAlignedTopAppBar(
+                title = { Text("Your Cart") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            ) 
+        },
         bottomBar = {
-            CheckOutBar(
+            CheckoutBar(
                 total = state.total,
-                isProgressing = state.isProcessing,
-                onCheckout = onCheckout
-            )
+                isProcessing = state.isProcessing
+            ) { viewModel.checkout() }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
@@ -67,15 +61,15 @@ fun CartScreenContent(
                 )
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(16.sdp),
-                    verticalArrangement = Arrangement.spacedBy(12.sdp)
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(state.items) { item ->
-                        CardItemRow(
+                        CartItemRow(
                             item = item,
-                            onIncrease = { onUpdateQuantity(item.product.id, 1) },
-                            onDecrease = { onUpdateQuantity(item.product.id, -1) },
-                            onRemove = { onRemoveItem(item.product.id) }
+                            onIncrease = { viewModel.updateQuantity(item.product.id, 1) },
+                            onDecrease = { viewModel.updateQuantity(item.product.id, -1) },
+                            onRemove = { viewModel.removeItem(item.product.id) }
                         )
                     }
                 }
@@ -84,29 +78,55 @@ fun CartScreenContent(
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun CartScreenPreview() {
-    val mockProducts = listOf(
-        Product(id = "1", name = "Product 1", price = 10.0, category = "Category A"),
-        Product(id = "2", name = "Product 2", price = 20.0, category = "Category B"),
-    )
-    val mockItems = listOf(
-        OrderItem(product = mockProducts[0], quantity = 2, priceAtTimeOfOrder = 10.0),
-        OrderItem(product = mockProducts[1], quantity = 1, priceAtTimeOfOrder = 20.0),
-    )
-    val mockState = CartUIState(
-        items = mockItems,
-        total = 40.0,
-        isProcessing = false
-    )
+fun CartItemRow(
+    item: OrderItem,
+    onIncrease: () -> Unit,
+    onDecrease: () -> Unit,
+    onRemove: () -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = item.product.name, style = MaterialTheme.typography.titleMedium)
+                Text(text = "$${item.priceAtTimeOfOrder.format()}", style = MaterialTheme.typography.bodySmall)
+            }
+            
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = onDecrease) { Text("-") }
+                Text(text = item.quantity.toString(), modifier = Modifier.padding(horizontal = 8.dp))
+                Button(onClick = onIncrease) { Text("+") }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(onClick = onRemove, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                    Text("X")
+                }
+            }
+        }
+    }
+}
 
-    MaterialTheme {
-        CartScreenContent(
-            state = mockState,
-            onUpdateQuantity = { _, _ -> },
-            onRemoveItem = { _ -> },
-            onCheckout = {}
-        )
+@Composable
+fun CheckoutBar(total: Double, isProcessing: Boolean, onCheckout: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding(),
+        color = MaterialTheme.colorScheme.primaryContainer
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Total: $${total.format()}", style = MaterialTheme.typography.titleLarge)
+            Button(onClick = onCheckout, enabled = !isProcessing) {
+                if (isProcessing) CircularProgressIndicator(modifier = Modifier.size(20.dp)) 
+                else Text("Checkout")
+            }
+        }
     }
 }

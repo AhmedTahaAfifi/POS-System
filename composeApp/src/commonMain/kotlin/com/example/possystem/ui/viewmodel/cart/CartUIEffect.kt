@@ -6,4 +6,6 @@ sealed class CartUIEffect {
 
     data class ShowError(val message: String): CartUIEffect()
 
+    data class ShowPrintSuccess(val message: String): CartUIEffect()
+
 }

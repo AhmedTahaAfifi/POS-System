@@ -1,6 +1,5 @@
 package com.example.possystem.di
 
-import com.example.possystem.domain.repository.CartRepository
 import com.example.possystem.domain.usecase.AddToCartUseCase
 import com.example.possystem.domain.usecase.ClearCartUseCase
 import com.example.possystem.domain.usecase.CreateOrderUseCase

@@ -4,14 +4,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.possystem.domain.hardware.Printer
 import com.example.possystem.domain.model.Order
 import com.example.possystem.domain.model.OrderStatus
-import com.example.possystem.domain.repository.CartRepository
 import com.example.possystem.domain.usecase.ClearCartUseCase
 import com.example.possystem.domain.usecase.CreateOrderUseCase
 import com.example.possystem.domain.usecase.GetCartItemsUseCase
 import com.example.possystem.domain.usecase.RemoveFromCartUseCase
 import com.example.possystem.domain.usecase.UpdateCartQuantityUseCase
 import com.example.possystem.ui.viewmodel.BaseViewModel
-import com.example.possystem.ui.viewmodel.orderHistory.OrderHistoryUIEffect
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach

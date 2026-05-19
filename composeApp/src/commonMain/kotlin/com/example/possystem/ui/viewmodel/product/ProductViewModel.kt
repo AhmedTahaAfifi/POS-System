@@ -3,12 +3,13 @@ package com.example.possystem.ui.viewmodel.product
 import androidx.lifecycle.viewModelScope
 import com.example.possystem.domain.model.OrderItem
 import com.example.possystem.domain.model.Product
-import com.example.possystem.domain.repository.CartRepository
 import com.example.possystem.domain.usecase.AddToCartUseCase
 import com.example.possystem.domain.usecase.GetCartItemsUseCase
 import com.example.possystem.domain.usecase.GetProductsUseCase
 import com.example.possystem.ui.viewmodel.BaseViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class ProductViewModel(
